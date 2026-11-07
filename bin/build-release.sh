@@ -32,13 +32,19 @@ stable_tag="$(sed -n 's/^Stable tag: *//p' readme.txt | tr -d '[:space:]')"
 [[ "$constant_version" == "$version" ]] || fail "WS_FORM_DB_VERSION vaut $constant_version, pas $version."
 [[ "$stable_tag" == "$version" ]] || fail "le Stable tag de readme.txt vaut $stable_tag, pas $version."
 
-npm ci --no-audit --no-fund
+# Aucun script d'installation des dépendances ne s'exécute.
+npm ci --no-audit --no-fund --ignore-scripts
 npm run build
 
 build_dir="$root/dist/build"
 rm -rf "$root/dist"
 mkdir -p "$build_dir/$slug"
-rsync -a --exclude-from=.distignore ./ "$build_dir/$slug/"
+
+# Fichiers suivis par git et build seulement : un .env ou un fichier local
+# présent dans le dossier de travail ne peut pas partir dans l'archive.
+stage_dir="$build_dir/stage"
+{ git ls-files; find admin/js admin/css -type f; } | rsync -a --files-from=- ./ "$stage_dir/"
+rsync -a --exclude-from=.distignore "$stage_dir/" "$build_dir/$slug/"
 
 (cd "$build_dir" && zip -qr "$root/dist/$slug-$version.zip" "$slug")
 rm -rf "$build_dir"
