@@ -1,6 +1,6 @@
 {
   "name": "wsform-to-externaldb",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "WS Form PRO action that inserts submissions into an external MySQL or MariaDB database.",
   "license": "GPL-2.0-or-later",
   "private": true,
