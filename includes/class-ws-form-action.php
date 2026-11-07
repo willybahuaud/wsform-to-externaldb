@@ -462,6 +462,8 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'ws_form_db_action_nonce' ),
 					'formId'   => $form_id,
+					// Traces console seulement quand SCRIPT_DEBUG est actif.
+					'debug'    => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
 					'actionId' => $this->id,
 					'i18n'     => array(
 						'testSuccess'       => esc_html__( 'Connection successful!', 'wsform-to-externaldb' ),
@@ -480,6 +482,10 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 						'valuePlaceholder'  => esc_html__( '#field(123), #email, text...', 'wsform-to-externaldb' ),
 						'alreadyUsed'       => esc_html__( 'already used', 'wsform-to-externaldb' ),
 						'mappingIntro'      => esc_html__( 'Use WS Form variables: #field(ID), #email, #blog_time...', 'wsform-to-externaldb' ),
+						'mappingTitle'      => esc_html__( 'Column mapping', 'wsform-to-externaldb' ),
+						'removeRow'         => esc_html__( 'Remove', 'wsform-to-externaldb' ),
+						'variables'         => esc_html__( 'Variables', 'wsform-to-externaldb' ),
+						'requestError'      => esc_html__( 'The request failed.', 'wsform-to-externaldb' ),
 						'variablesFallback' => __( "WS Form variables: #field(ID), #email, #blog_time, #user_id...\n\nSee the WS Form documentation for the full list.", 'wsform-to-externaldb' ),
 					),
 				)

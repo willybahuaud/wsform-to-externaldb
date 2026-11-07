@@ -1,5 +1,3 @@
-# Copyright (C) 2026 Willy Bahuaud
-# This file is distributed under the GPL2.
 msgid ""
 msgstr ""
 "Project-Id-Version: External Database for WS Form 1.0.0\n"
@@ -11,9 +9,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2026-11-07T13:24:45+01:00\n"
 "PO-Revision-Date: 2026-11-07 13:30+0100\n"
+"Language: fr_FR\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wsform-to-externaldb\n"
-"Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #. Plugin Name of the plugin
@@ -45,7 +43,7 @@ msgid "Missing form ID."
 msgstr "Identifiant de formulaire manquant."
 
 #. translators: 1: connection name, 2: constant name
-#: includes/class-connection-settings.php:158
+#: includes/class-connection-settings.php:159
 #, php-format
 msgid "Connection “%1$s” is not declared in %2$s."
 msgstr "La connexion « %1$s » n’est pas déclarée dans %2$s."
@@ -248,71 +246,71 @@ msgstr "Charger les tables"
 msgid "Analyze table"
 msgstr "Analyser la table"
 
-#: includes/class-ws-form-action.php:467
+#: includes/class-ws-form-action.php:469
 msgid "Connection successful!"
 msgstr "Connexion réussie !"
 
-#: includes/class-ws-form-action.php:468
+#: includes/class-ws-form-action.php:470
 msgid "Connection failed."
 msgstr "Échec de la connexion."
 
-#: includes/class-ws-form-action.php:469
+#: includes/class-ws-form-action.php:471
 msgid "Tables loaded."
 msgstr "Tables chargées."
 
-#: includes/class-ws-form-action.php:470
+#: includes/class-ws-form-action.php:472
 msgid "Could not load the tables."
 msgstr "Impossible de récupérer les tables."
 
-#: includes/class-ws-form-action.php:471
+#: includes/class-ws-form-action.php:473
 msgid "Table analyzed."
 msgstr "Table analysée."
 
-#: includes/class-ws-form-action.php:472
+#: includes/class-ws-form-action.php:474
 msgid "Analysis failed."
 msgstr "Analyse impossible."
 
-#: includes/class-ws-form-action.php:473
+#: includes/class-ws-form-action.php:475
 msgid "No mappable column found."
 msgstr "Aucune colonne mappable détectée."
 
-#: includes/class-ws-form-action.php:474
+#: includes/class-ws-form-action.php:476
 msgid "Loading…"
 msgstr "Chargement…"
 
-#: includes/class-ws-form-action.php:475
+#: includes/class-ws-form-action.php:477
 msgid "Please select a table."
 msgstr "Veuillez sélectionner une table."
 
-#: includes/class-ws-form-action.php:476
+#: includes/class-ws-form-action.php:478
 msgid "Incomplete connection settings."
 msgstr "Paramètres de connexion incomplets."
 
-#: includes/class-ws-form-action.php:477
+#: includes/class-ws-form-action.php:479
 msgid "-- Select a table --"
 msgstr "-- Sélectionner une table --"
 
-#: includes/class-ws-form-action.php:478
+#: includes/class-ws-form-action.php:480
 msgid "Add mapping"
 msgstr "Ajouter un mapping"
 
-#: includes/class-ws-form-action.php:479
+#: includes/class-ws-form-action.php:481
 msgid "-- Column --"
 msgstr "-- Colonne --"
 
-#: includes/class-ws-form-action.php:480
+#: includes/class-ws-form-action.php:482
 msgid "#field(123), #email, text..."
 msgstr "#field(123), #email, texte..."
 
-#: includes/class-ws-form-action.php:481
+#: includes/class-ws-form-action.php:483
 msgid "already used"
 msgstr "déjà utilisée"
 
-#: includes/class-ws-form-action.php:482
+#: includes/class-ws-form-action.php:484
 msgid "Use WS Form variables: #field(ID), #email, #blog_time..."
 msgstr "Utilisez les variables WS Form : #field(ID), #email, #blog_time..."
 
-#: includes/class-ws-form-action.php:483
+#: includes/class-ws-form-action.php:489
 msgid ""
 "WS Form variables: #field(ID), #email, #blog_time, #user_id...\n"
 "\n"
@@ -322,14 +320,38 @@ msgstr ""
 "\n"
 "Consultez la documentation WS Form pour la liste complète."
 
-#: wsform-to-externaldb.php:55
+#: wsform-to-externaldb.php:58
 msgid "WS Form must be active to use External Database for WS Form."
 msgstr "WS Form doit être actif pour utiliser Base de données externe pour WS Form."
 
-#: wsform-to-externaldb.php:132
+#: wsform-to-externaldb.php:146
 msgid "WS Form must be installed and active before activating External Database for WS Form."
 msgstr "WS Form doit être installé et actif avant d’activer Base de données externe pour WS Form."
 
-#: wsform-to-externaldb.php:133
+#: wsform-to-externaldb.php:147
 msgid "Activation failed"
 msgstr "Activation impossible"
+
+#: includes/class-updater.php:228
+msgid "Could not rename the plugin folder during the update."
+msgstr "Impossible de renommer le dossier de l’extension pendant la mise à jour."
+
+#: includes/class-updater.php:411
+msgid "No release notes."
+msgstr "Aucune note de version."
+
+#: includes/class-ws-form-action.php:485
+msgid "Column mapping"
+msgstr "Mapping des colonnes"
+
+#: includes/class-ws-form-action.php:486
+msgid "Remove"
+msgstr "Supprimer"
+
+#: includes/class-ws-form-action.php:487
+msgid "Variables"
+msgstr "Variables"
+
+#: includes/class-ws-form-action.php:488
+msgid "The request failed."
+msgstr "La requête a échoué."
