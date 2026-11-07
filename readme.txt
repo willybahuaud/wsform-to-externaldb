@@ -4,7 +4,7 @@ Tags: ws form, database, mysql, mariadb, form submission
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,7 +30,8 @@ Typical use: feed a CRM, an ERP or a business database that lives outside WordPr
 * The WordPress database is refused by default, detected by the server identity, not by the host name.
 * All values go through prepared statements. Table and column names must exist in the target table.
 * Connection settings never reach the public form.
-* Configuration endpoints require the `manage_options` capability and a nonce.
+* Configuration endpoints require `manage_options` (`manage_network_options` on multisite) and a nonce.
+* The action password is never kept in stored submissions.
 
 == Installation ==
 
@@ -68,6 +69,14 @@ Only `INSERT` on the target table. MySQL and MariaDB then let it list that table
 From the GitHub releases of its repository, through the usual WordPress update screen. Automatic updates can be turned on in the plugin list.
 
 == Changelog ==
+
+= 1.0.2 =
+* Fix: every "External database" action of a form now runs, not only the first one.
+* Security: a comma typed by a visitor can no longer shift the arguments of #get_* variables.
+* Security: the action password is no longer copied into stored submissions.
+* Security: editor capability is manage_network_options on multisite, filterable; named connections can be limited to some sites.
+* Empty values in NOT NULL columns with a default are left out; generated columns are not offered; BIT and decimal comma handled.
+* Connection: no request death on a lost connection, localhost and IPv6 with a custom port fixed, hyphen allowed in names.
 
 = 1.0.1 =
 * Editor script rewritten as small modules, no more hard-coded French strings.

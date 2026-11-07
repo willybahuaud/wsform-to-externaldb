@@ -4,7 +4,7 @@
  * Description: Adds a WS Form action that inserts submissions into an external MySQL or MariaDB database.
  * Author: Willy Bahuaud
  * Author URI: https://wabeo.fr
- * Version: 1.0.1
+ * Version: 1.0.2
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Update URI: https://github.com/willybahuaud/wsform-to-externaldb
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'WS_FORM_DB_VERSION' ) ) {
-	define( 'WS_FORM_DB_VERSION', '1.0.1' );
+	define( 'WS_FORM_DB_VERSION', '1.0.2' );
 }
 
 if ( ! defined( 'WS_FORM_DB_PLUGIN_FILE' ) ) {
