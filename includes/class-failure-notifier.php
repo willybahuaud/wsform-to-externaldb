@@ -10,11 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Prévient l'administrateur quand une soumission n'a pas atteint la base externe.
- *
- * Le visiteur n'est jamais bloqué : la soumission reste enregistrée dans
- * WS Form. L'échec est journalisé, noté sur la soumission et signalé par une
- * notice dans l'administration jusqu'à ce qu'un administrateur la ferme.
+ * Signale un échec d'insertion : journal, note sur la soumission, notice admin.
  */
 class WS_Form_DB_Failure_Notifier {
 
@@ -87,7 +83,7 @@ class WS_Form_DB_Failure_Notifier {
 	 * @return void
 	 */
 	public static function display_notice() {
-		if ( ! current_user_can( WS_Form_DB_Security::ADMIN_CAPABILITY ) ) {
+		if ( ! WS_Form_DB_Security::current_user_can_manage() ) {
 			return;
 		}
 
@@ -128,7 +124,7 @@ class WS_Form_DB_Failure_Notifier {
 	 * @return void
 	 */
 	public static function dismiss() {
-		if ( ! current_user_can( WS_Form_DB_Security::ADMIN_CAPABILITY ) ) {
+		if ( ! WS_Form_DB_Security::current_user_can_manage() ) {
 			wp_die( esc_html__( 'You are not allowed to do this.', 'wsform-to-externaldb' ), 403 );
 		}
 

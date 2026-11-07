@@ -2,16 +2,14 @@
  * Interface de configuration de l'action dans la barre latérale de WS Form.
  */
 
-import { i18n, log, metaPrefix, parseJson, escapeHtml } from './helpers';
+import { i18n, i18nHtml, log, metaPrefix, parseJson, escapeHtml } from './helpers';
 import { request } from './api';
 import MappingEditor from './mapping';
 
 /**
- * Relie les boutons de l'action aux points AJAX et garde les caches à jour.
+ * Relie les boutons de l'action aux points AJAX.
  *
- * Les tables, colonnes et le mapping sont stockés dans des champs cachés de
- * l'action : WS Form les enregistre avec le formulaire, et l'interface les
- * retrouve à la réouverture sans rappeler la base.
+ * Tables, colonnes et mapping sont gardés dans des champs cachés que WS Form enregistre avec le formulaire.
  */
 export default class ActionUI {
 	/**
@@ -283,7 +281,7 @@ export default class ActionUI {
 	 * @param {string} selectedTable Table à présélectionner.
 	 */
 	populateTables( selectedTable ) {
-		let html = '<option value="">' + i18n( 'selectTable' ) + '</option>';
+		let html = '<option value="">' + i18nHtml( 'selectTable' ) + '</option>';
 
 		for ( const table of this.tables ) {
 			html +=
@@ -323,7 +321,7 @@ export default class ActionUI {
 		if ( ! this.columns.length ) {
 			this.$mappingUi
 				.find( '[data-wsf-db-columns]' )
-				.html( '<p>' + i18n( 'noColumns' ) + '</p>' );
+				.html( '<p>' + i18nHtml( 'noColumns' ) + '</p>' );
 			this.$mappingUi.hide();
 			return;
 		}

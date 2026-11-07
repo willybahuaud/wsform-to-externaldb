@@ -97,12 +97,15 @@ class WS_Form_DB_Table_Analyzer {
 			$extra = isset( $row['Extra'] ) ? (string) $row['Extra'] : '';
 
 			$columns[] = array(
-				'name'           => $row['Field'],
+				'name'           => (string) $row['Field'],
 				'type'           => isset( $row['Type'] ) ? $row['Type'] : '',
 				'null'           => isset( $row['Null'] ) ? $row['Null'] : '',
-				'default'        => isset( $row['Default'] ) ? $row['Default'] : '',
+				// NULL signifie « pas de valeur par défaut », à distinguer d'une chaîne vide.
+				'default'        => array_key_exists( 'Default', $row ) ? $row['Default'] : null,
 				'extra'          => $extra,
-				'auto_increment' => false !== strpos( $extra, 'auto_increment' ),
+				'auto_increment' => false !== stripos( $extra, 'auto_increment' ),
+				// « DEFAULT_GENERATED » (CURRENT_TIMESTAMP sous MySQL 8) n'est pas une colonne générée.
+				'generated'      => (bool) preg_match( '/\b(VIRTUAL|STORED) GENERATED\b/i', $extra ),
 			);
 		}
 
@@ -117,21 +120,23 @@ class WS_Form_DB_Table_Analyzer {
 	}
 
 	/**
-	 * Retourne les noms des colonnes qui peuvent recevoir une valeur.
+	 * Retourne les colonnes qui peuvent recevoir une valeur, indexées par nom.
+	 *
+	 * Exclut l'auto-incrément et les colonnes générées, que MySQL refuse en écriture.
 	 *
 	 * @param array[] $columns Colonnes décrites par get_columns().
 	 *
-	 * @return string[]
+	 * @return array<string,array>
 	 */
-	public static function get_writable_column_names( $columns ) {
-		$names = array();
+	public static function get_writable_columns( $columns ) {
+		$writable = array();
 
 		foreach ( $columns as $column ) {
-			if ( empty( $column['auto_increment'] ) ) {
-				$names[] = $column['name'];
+			if ( empty( $column['auto_increment'] ) && empty( $column['generated'] ) ) {
+				$writable[ $column['name'] ] = $column;
 			}
 		}
 
-		return $names;
+		return $writable;
 	}
 }

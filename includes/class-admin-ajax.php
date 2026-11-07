@@ -10,12 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Points AJAX utilisés par la configuration de l'action.
- *
- * Tous exigent manage_options et un nonce. Ils ouvrent des connexions vers
- * l'hôte saisi : c'est leur rôle, réservé à un administrateur qui peut déjà
- * installer des extensions. Le délai court de WS_Form_DB_External_Wpdb limite
- * leur intérêt pour sonder le réseau.
+ * Points AJAX de l'éditeur, réservés à manage_options avec nonce.
  */
 class WS_Form_DB_Admin_Ajax {
 
@@ -35,7 +30,6 @@ class WS_Form_DB_Admin_Ajax {
 		add_action( 'wp_ajax_ws_form_db_test_connection', array( __CLASS__, 'test_connection' ) );
 		add_action( 'wp_ajax_ws_form_db_get_tables', array( __CLASS__, 'get_tables' ) );
 		add_action( 'wp_ajax_ws_form_db_analyze_table', array( __CLASS__, 'analyze_table' ) );
-		add_action( 'wp_ajax_ws_form_db_get_form_fields', array( __CLASS__, 'get_form_fields' ) );
 	}
 
 	/**
@@ -79,36 +73,7 @@ class WS_Form_DB_Admin_Ajax {
 
 		self::die_on_error( $columns );
 
-		$writable = array();
-		foreach ( $columns as $column ) {
-			if ( empty( $column['auto_increment'] ) ) {
-				$writable[] = $column;
-			}
-		}
-
-		wp_send_json_success( array( 'columns' => $writable ) );
-	}
-
-	/**
-	 * Retourne les champs du formulaire.
-	 *
-	 * @return void
-	 */
-	public static function get_form_fields() {
-		self::verify_request();
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce vérifié dans verify_request().
-		$form_id = isset( $_POST['form_id'] ) ? absint( $_POST['form_id'] ) : 0;
-
-		if ( ! $form_id ) {
-			wp_send_json_error( array( 'message' => __( 'Missing form ID.', 'wsform-to-externaldb' ) ) );
-		}
-
-		$fields = WS_Form_DB_Field_Mapper::get_form_fields( $form_id );
-
-		self::die_on_error( $fields );
-
-		wp_send_json_success( array( 'fields' => $fields ) );
+		wp_send_json_success( array( 'columns' => array_values( WS_Form_DB_Table_Analyzer::get_writable_columns( $columns ) ) ) );
 	}
 
 	/**

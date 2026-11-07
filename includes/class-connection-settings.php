@@ -12,11 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Construit des paramètres de connexion validés, depuis wp-config.php ou l'action.
  *
- * Une connexion nommée, déclarée dans wp-config.php, garde le mot de passe hors
- * de la base WordPress : il n'apparaît alors ni dans l'export ni dans le clone
- * d'un formulaire. Les champs de l'action restent un mode de secours.
- *
- * Exemple dans wp-config.php :
+ * Une connexion nommée garde le mot de passe hors des formulaires et de leurs exports :
  *
  *     define( 'WS_FORM_DB_CONNECTIONS', array(
  *         'crm' => array(
@@ -25,7 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  *             'user'     => 'forms',
  *             'password' => '...',
  *             'database' => 'crm',
- *             'timeout'  => 5, // Facultatif, en secondes.
+ *             'timeout'  => 5,          // Facultatif, en secondes.
+ *             'sites'    => array( 2 ), // Facultatif, multisite : sites autorisés.
  *         ),
  *     ) );
  */
@@ -39,11 +36,18 @@ class WS_Form_DB_Connection_Settings {
 	const CONNECTIONS_CONSTANT = 'WS_FORM_DB_CONNECTIONS';
 
 	/**
+	 * Identifiant de l'action WS Form. Ne pas changer : les formulaires existants en dépendent.
+	 *
+	 * @var string
+	 */
+	const ACTION_ID = 'ws_form_db_external';
+
+	/**
 	 * Préfixe des meta keys de l'action.
 	 *
 	 * @var string
 	 */
-	const META_PREFIX = 'action_ws_form_db_external_';
+	const META_PREFIX = 'action_' . self::ACTION_ID . '_';
 
 	/**
 	 * Port MySQL par défaut.
@@ -71,12 +75,29 @@ class WS_Form_DB_Connection_Settings {
 		$valid = array();
 
 		foreach ( $connections as $name => $connection ) {
-			if ( is_string( $name ) && '' !== $name && is_array( $connection ) ) {
+			if ( is_string( $name ) && '' !== $name && is_array( $connection ) && self::is_available_on_current_site( $connection ) ) {
 				$valid[ $name ] = $connection;
 			}
 		}
 
 		return $valid;
+	}
+
+	/**
+	 * Indique si une connexion nommée est réservée à d'autres sites du réseau.
+	 *
+	 * La clé facultative « sites » liste les ID de sites autorisés. Sans elle, la connexion est partout disponible.
+	 *
+	 * @param array $connection Connexion brute.
+	 *
+	 * @return bool
+	 */
+	private static function is_available_on_current_site( $connection ) {
+		if ( ! isset( $connection['sites'] ) || ! is_multisite() ) {
+			return true;
+		}
+
+		return in_array( get_current_blog_id(), array_map( 'absint', (array) $connection['sites'] ), true );
 	}
 
 	/**

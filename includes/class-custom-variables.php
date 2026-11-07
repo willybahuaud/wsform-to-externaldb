@@ -10,20 +10,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Variables #get_post_title(), #get_post_field(), #get_post_meta(),
- * #get_term_name() et #get_user_display_name(), utilisables dans le mapping.
+ * Variables #get_*() du mapping : lisent une donnée WordPress publique à partir d'un ID.
  *
- * Cas d'usage : un champ caché contient l'ID d'un contenu, et l'action
- * enregistre son titre avec #get_post_title(#field(12)).
- *
- * Sécurité :
- * - elles ne sont résolues que dans le modèle écrit par l'administrateur,
- *   avant que WS Form n'y injecte les saisies : un visiteur qui les tape dans
- *   un champ obtient le texte brut. Elles ne passent pas par les filtres
- *   globaux de WS Form et ne touchent donc ni aux e-mails ni aux autres actions ;
- * - l'ID peut venir d'un champ, donc du visiteur : seuls les contenus publics
- *   sont lus (publiés, sans mot de passe, de type public) et les métas
- *   protégées (préfixe _) sont refusées.
+ * Résolues seulement dans le modèle écrit par l'admin, jamais dans une saisie.
+ * L'ID pouvant venir du visiteur, seuls les contenus publics et les métas non protégées sont lus.
  */
 class WS_Form_DB_Custom_Variables {
 
@@ -62,15 +52,15 @@ class WS_Form_DB_Custom_Variables {
 		$prefix = 'wsfdb' . wp_generate_password( 12, false );
 
 		foreach ( $matches as $index => $match ) {
-			$arguments_raw = substr( $match[2], 1, -1 );
+			$arguments = array();
 
-			// Les arguments peuvent contenir des variables, comme #field(12).
-			if ( false !== strpos( $arguments_raw, '#' ) ) {
-				$arguments_raw = WS_Form_Common::parse_variables_process( $arguments_raw, $form, $submit, 'text/plain' );
+			// Découpage avant résolution : une virgule saisie par le visiteur ne doit pas décaler les arguments.
+			foreach ( self::split_arguments( substr( $match[2], 1, -1 ) ) as $argument ) {
+				$arguments[] = trim( (string) WS_Form_Common::parse_variables_process( $argument, $form, $submit, 'text/plain' ) );
 			}
 
 			$token            = $prefix . $index . 'x';
-			$values[ $token ] = self::resolve( $match[1], array_map( 'trim', explode( ',', (string) $arguments_raw ) ) );
+			$values[ $token ] = self::resolve( $match[1], $arguments );
 			$template         = self::replace_first( $match[0], $token, $template );
 		}
 
@@ -87,6 +77,41 @@ class WS_Form_DB_Custom_Variables {
 	 */
 	public static function restore( $value, $values ) {
 		return strtr( $value, $values );
+	}
+
+	/**
+	 * Découpe des arguments sur les virgules de premier niveau.
+	 *
+	 * Les virgules à l'intérieur de parenthèses, comme dans #field(12, ", "), sont ignorées.
+	 *
+	 * @param string $arguments Arguments bruts, sans les parenthèses extérieures.
+	 *
+	 * @return string[]
+	 */
+	private static function split_arguments( $arguments ) {
+		$parts   = array();
+		$current = '';
+		$depth   = 0;
+
+		foreach ( str_split( $arguments ) as $character ) {
+			if ( ',' === $character && 0 === $depth ) {
+				$parts[] = $current;
+				$current = '';
+				continue;
+			}
+
+			if ( '(' === $character ) {
+				++$depth;
+			} elseif ( ')' === $character ) {
+				--$depth;
+			}
+
+			$current .= $character;
+		}
+
+		$parts[] = $current;
+
+		return $parts;
 	}
 
 	/**

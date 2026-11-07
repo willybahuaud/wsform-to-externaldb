@@ -21,7 +21,7 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 		 *
 		 * @var string
 		 */
-		public $id = 'ws_form_db_external';
+		public $id = WS_Form_DB_Connection_Settings::ACTION_ID;
 
 		/**
 		 * Libellé de l'action.
@@ -99,7 +99,7 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 		private function __construct() {
 			add_action( 'init', array( $this, 'init' ) );
 			add_filter( 'wsf_config_meta_keys', array( $this, 'config_meta_keys' ), 10, 2 );
-			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+			add_filter( 'wsf_action_pre_post', array( $this, 'strip_password_from_submit' ), 10, 3 );
 		}
 
 		/**
@@ -128,7 +128,7 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 		}
 
 		/**
-		 * Ajoute les meta keys (champs de configuration) de l'action.
+		 * Déclare les réglages de l'action auprès de WS Form.
 		 *
 		 * @param array $meta_keys Meta keys existantes.
 		 * @param int   $form_id   Identifiant du formulaire.
@@ -136,9 +136,18 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 		 * @return array
 		 */
 		public function config_meta_keys( $meta_keys = array(), $form_id = 0 ) {
+			return array_merge( $meta_keys, $this->get_meta_key_definitions() );
+		}
+
+		/**
+		 * Définit les réglages de l'action, dans l'ordre d'affichage.
+		 *
+		 * @return array<string,array>
+		 */
+		private function get_meta_key_definitions() {
 			$action_id = $this->id;
 
-			$config_meta_keys = array(
+			return array(
 
 				// Connexion nommée déclarée dans wp-config.php, ou saisie manuelle.
 				'action_' . $action_id . '_connection'    => array(
@@ -245,8 +254,6 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 					'default' => '',
 				),
 			);
-
-			return array_merge( $meta_keys, $config_meta_keys );
 		}
 
 		/**
@@ -255,24 +262,7 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 		 * @return stdClass
 		 */
 		public function get_action_settings() {
-			$action_id = $this->id;
-
-			$settings = array(
-				'meta_keys' => array(
-					'action_' . $action_id . '_connection',
-					'action_' . $action_id . '_host',
-					'action_' . $action_id . '_user',
-					'action_' . $action_id . '_password',
-					'action_' . $action_id . '_port',
-					'action_' . $action_id . '_name',
-					'action_' . $action_id . '_buttons',
-					'action_' . $action_id . '_table',
-					'action_' . $action_id . '_tables_cache',
-					'action_' . $action_id . '_columns_cache',
-					'action_' . $action_id . '_mapping_ui',
-					'action_' . $action_id . '_mapping',
-				),
-			);
+			$settings = array( 'meta_keys' => array_keys( $this->get_meta_key_definitions() ) );
 
 			$settings                   = parent::get_settings_wrapper( $settings );
 			$settings->label            = $this->label;
@@ -292,23 +282,16 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 		/**
 		 * Insère la soumission dans la base externe.
 		 *
-		 * En cas d'échec, le visiteur n'est pas bloqué et ne voit aucun détail
-		 * technique : la soumission reste dans WS Form et l'administrateur est
-		 * prévenu par WS_Form_DB_Failure_Notifier.
+		 * Renvoie toujours true : un échec ne doit ni bloquer le visiteur ni lui montrer de détail technique.
 		 *
 		 * @param mixed $form   Objet formulaire WS Form.
 		 * @param mixed $submit Objet soumission WS Form.
 		 * @param array $config Configuration de l'action.
-		 * @param int   $count  Rang de l'exécution dans la requête (commence à 1).
+		 * @param int   $count  Rang de l'action parmi celles de ce type (non utilisé : chaque instance insère).
 		 *
 		 * @return bool
 		 */
 		public function post( $form, $submit, $config, $count = 1 ) {
-			// WS Form peut rappeler l'action pour la même soumission : une seule insertion.
-			if ( $count > 1 ) {
-				return true;
-			}
-
 			$form_id = ( is_object( $form ) && isset( $form->id ) ) ? absint( $form->id ) : 0;
 			$meta    = ( isset( $config['meta'] ) && is_array( $config['meta'] ) ) ? $config['meta'] : array();
 
@@ -320,9 +303,49 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 				return true;
 			}
 
-			WS_Form_DB_Logger::log_submission( $form_id, $this->id, true );
+			WS_Form_DB_Logger::log_info( 'Submission inserted', array( 'form_id' => $form_id ) );
 
 			return true;
+		}
+
+		/**
+		 * Retire le mot de passe de la copie des actions que WS Form enregistre avec chaque soumission.
+		 *
+		 * WS Form y sérialise la configuration complète des actions avant chacune d'elles.
+		 * Notre action reçoit sa configuration séparément : la copie peut être nettoyée.
+		 *
+		 * @param object $action_object Action sur le point de s'exécuter.
+		 * @param object $form          Formulaire.
+		 * @param object $submit        Soumission, modifiée par référence d'objet.
+		 *
+		 * @return object Action inchangée.
+		 */
+		public function strip_password_from_submit( $action_object, $form, $submit ) {
+			if ( ! is_object( $submit ) || ! isset( $submit->actions ) || ! is_string( $submit->actions ) ) {
+				return $action_object;
+			}
+
+			$password_key = WS_Form_DB_Connection_Settings::META_PREFIX . 'password';
+
+			if ( false === strpos( $submit->actions, $password_key ) ) {
+				return $action_object;
+			}
+
+			$actions = unserialize( $submit->actions, array( 'allowed_classes' => false ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize -- Format imposé par WS Form.
+
+			if ( ! is_array( $actions ) ) {
+				return $action_object;
+			}
+
+			foreach ( $actions as $index => $action ) {
+				if ( isset( $action['meta'][ $password_key ] ) ) {
+					$actions[ $index ]['meta'][ $password_key ] = '';
+				}
+			}
+
+			$submit->actions = serialize( $actions ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Format imposé par WS Form.
+
+			return $action_object;
 		}
 
 		/**
@@ -386,7 +409,7 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 				</button>
 				<button type="button" class="wsf-button wsf-button-small" data-wsf-db-analyze-table disabled>
 					<?php echo esc_html__( 'Analyze table', 'wsform-to-externaldb' ); ?>
-					</button>
+				</button>
 				<div class="wsf-db-connection-status" data-wsf-db-status></div>
 			</div>
 			<?php
@@ -401,102 +424,12 @@ if ( class_exists( 'WS_Form_Action' ) && ! class_exists( 'WS_Form_DB_WS_Form_Act
 		protected function get_mapping_ui_markup() {
 			ob_start();
 			?>
-		<div class="wsf-db-mapping-ui" data-wsf-db-mapping-ui style="display: none;">
-			<div class="wsf-db-columns-list" data-wsf-db-columns></div>
-			<div class="wsf-db-mapping-container" data-wsf-db-mapping-rows>
-				</div>
+			<div class="wsf-db-mapping-ui" data-wsf-db-mapping-ui style="display: none;">
+				<div class="wsf-db-columns-list" data-wsf-db-columns></div>
+				<div class="wsf-db-mapping-container" data-wsf-db-mapping-rows></div>
 			</div>
 			<?php
 			return ob_get_clean();
-		}
-
-		/**
-		 * Charge les assets nécessaires dans l'interface WS Form.
-		 *
-		 * @return void
-		 */
-		public function enqueue_admin_assets() {
-			if ( ! is_admin() ) {
-				return;
-			}
-
-			$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-
-			if ( ! $screen || false === strpos( $screen->id, 'ws-form' ) ) {
-				return;
-			}
-
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$form_id = isset( $_GET['form_id'] ) ? absint( $_GET['form_id'] ) : 0;
-
-			$handle = 'ws-form-db-action-config';
-			$script = WS_FORM_DB_PLUGIN_URL . 'admin/js/ws-form-action-config.js';
-			$style  = WS_FORM_DB_PLUGIN_URL . 'admin/css/ws-form-action-config.css';
-
-			$asset = array(
-				'dependencies' => array( 'jquery' ),
-				'version'      => WS_FORM_DB_VERSION,
-			);
-
-			$asset_file = WS_FORM_DB_PLUGIN_DIR . 'admin/js/ws-form-action-config.asset.php';
-
-			if ( file_exists( $asset_file ) ) {
-				$asset_from_file = include $asset_file;
-				if ( is_array( $asset_from_file ) ) {
-					$asset = wp_parse_args( $asset_from_file, $asset );
-				}
-			}
-
-			wp_enqueue_script(
-				$handle,
-				$script,
-				$asset['dependencies'],
-				$asset['version'],
-				true
-			);
-
-			wp_localize_script(
-				$handle,
-				'wsFormDbConfig',
-				array(
-					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'ws_form_db_action_nonce' ),
-					'formId'   => $form_id,
-					// Traces console seulement quand SCRIPT_DEBUG est actif.
-					'debug'    => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
-					'actionId' => $this->id,
-					'i18n'     => array(
-						'testSuccess'       => esc_html__( 'Connection successful!', 'wsform-to-externaldb' ),
-						'testError'         => esc_html__( 'Connection failed.', 'wsform-to-externaldb' ),
-						'tablesLoaded'      => esc_html__( 'Tables loaded.', 'wsform-to-externaldb' ),
-						'tablesError'       => esc_html__( 'Could not load the tables.', 'wsform-to-externaldb' ),
-						'analyzeSuccess'    => esc_html__( 'Table analyzed.', 'wsform-to-externaldb' ),
-						'analyzeError'      => esc_html__( 'Analysis failed.', 'wsform-to-externaldb' ),
-						'noColumns'         => esc_html__( 'No mappable column found.', 'wsform-to-externaldb' ),
-						'loading'           => esc_html__( 'Loading…', 'wsform-to-externaldb' ),
-						'selectTableFirst'  => esc_html__( 'Please select a table.', 'wsform-to-externaldb' ),
-						'connectionMissing' => esc_html__( 'Incomplete connection settings.', 'wsform-to-externaldb' ),
-						'selectTable'       => esc_html__( '-- Select a table --', 'wsform-to-externaldb' ),
-						'addMapping'        => esc_html__( 'Add mapping', 'wsform-to-externaldb' ),
-						'selectColumn'      => esc_html__( '-- Column --', 'wsform-to-externaldb' ),
-						'valuePlaceholder'  => esc_html__( '#field(123), #email, text...', 'wsform-to-externaldb' ),
-						'alreadyUsed'       => esc_html__( 'already used', 'wsform-to-externaldb' ),
-						'mappingIntro'      => esc_html__( 'Use WS Form variables: #field(ID), #email, #blog_time...', 'wsform-to-externaldb' ),
-						'mappingTitle'      => esc_html__( 'Column mapping', 'wsform-to-externaldb' ),
-						'removeRow'         => esc_html__( 'Remove', 'wsform-to-externaldb' ),
-						'variables'         => esc_html__( 'Variables', 'wsform-to-externaldb' ),
-						'requestError'      => esc_html__( 'The request failed.', 'wsform-to-externaldb' ),
-						'variablesFallback' => __( "WS Form variables: #field(ID), #email, #blog_time, #user_id...\n\nSee the WS Form documentation for the full list.", 'wsform-to-externaldb' ),
-					),
-				)
-			);
-
-			wp_enqueue_style(
-				$handle,
-				$style,
-				array(),
-				WS_FORM_DB_VERSION
-			);
 		}
 	}
 }

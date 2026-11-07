@@ -24,7 +24,8 @@ You get a CRM, an ERP or a business database that lives outside WordPress fed by
            'user'     => 'forms',
            'password' => '...',
            'database' => 'crm',
-           'timeout'  => 5, // Optional, in seconds. 5 by default.
+           'timeout'  => 5,          // Optional, in seconds. 5 by default.
+           'sites'    => array( 2 ), // Optional, multisite: sites allowed to use it.
        ),
    ) );
    ```
@@ -50,7 +51,9 @@ A few rules apply when building values:
 
 - Templates are parsed as `text/plain`: line breaks and accented characters arrive as typed.
 - An empty value becomes `NULL` in a nullable column that is not a text column. A blank optional field does not end up as `0` or `0000-00-00`.
-- Text sent to a numeric column is refused instead of being silently converted to `0`.
+- An empty value in a `NOT NULL` column that has a default is left out, so the database applies its default.
+- Text sent to a numeric column is refused instead of being silently converted to `0`. A decimal comma (`12,5`) is accepted.
+- Generated columns and auto-increment columns cannot be mapped.
 - A value too long for its column is refused. Nothing is truncated.
 
 ### When it fails
@@ -81,8 +84,10 @@ A named connection in `wp-config.php` avoids all of that: the form only stores t
 
   `WS_FORM_DB_ALLOW_WORDPRESS_DATABASE` set to `true` lifts the protection entirely. You should not need it.
 
-- **Values** always go through prepared statements. **Table and column names** cannot, so they are limited to `[A-Za-z0-9_$]` and must exist in the real table.
-- **Editor endpoints** (test connection, list tables, describe a table) require `manage_options` and a nonce. They do connect to whatever host is typed: that is their job. An administrator can already install plugins, and the short timeout keeps them from being much use for probing the network.
+- **Values** always go through prepared statements. **Table and column names** cannot, so they are limited to `[A-Za-z0-9_$-]` and must exist in the real table.
+- **Editor endpoints** (test connection, list tables, describe a table) require `manage_options`, or `manage_network_options` on multisite (filter `ws_form_db_capability`), and a nonce. They connect to whatever host is typed: that is their job.
+- **Form editors.** Anyone allowed to edit WS Form forms can configure this action, including picking a named connection. Keep that right for trusted roles. On multisite, restrict a named connection to some sites with its `sites` key.
+- **Stored submissions** never keep the action password: it is removed from the copy of the actions that WS Form saves with each submission.
 - **Custom variables** (below) are only resolved in the template you write, never in what a visitor types.
 
 ## Variables
@@ -105,10 +110,10 @@ The plugin adds a few variables to read public WordPress data from an ID, typica
 
 | Hook | Type | Purpose |
 |------|------|---------|
+| `ws_form_db_capability` | filter | Capability for the editor endpoints and the failure notice (default `manage_options`, `manage_network_options` on multisite) |
 | `ws_form_db_connect_timeout` | filter | Connection timeout in seconds: `( $timeout, $host )`. Starts from the connection's `timeout` key, or `5` |
 | `ws_form_db_table_cache_duration` | filter | Table structure cache in seconds (default `300`) |
 | `ws_form_db_sanitize_value` | filter | Last chance to change a value before insert: `( $value, $template, $submit )` |
-| `ws_form_db_form_fields` | filter | Fields offered in the mapping UI: `( $fields, $form_id )` |
 | `ws_form_db_after_log` | action | Runs after each log line: `( $level, $message, $context, $formatted )` |
 
 ### Logging

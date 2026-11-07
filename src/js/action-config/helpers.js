@@ -27,6 +27,16 @@ export function i18n( key ) {
 }
 
 /**
+ * Retourne une chaîne traduite, échappée pour être insérée dans du HTML.
+ *
+ * @param {string} key Clé de la chaîne.
+ * @return {string} Chaîne échappée.
+ */
+export function i18nHtml( key ) {
+	return escapeHtml( i18n( key ) );
+}
+
+/**
  * Écrit une trace dans la console, seulement si SCRIPT_DEBUG est actif.
  *
  * @param {...*} values Valeurs à afficher.

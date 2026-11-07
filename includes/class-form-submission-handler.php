@@ -15,25 +15,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WS_Form_DB_Form_Submission_Handler {
 
 	/**
-	 * Préfixe des meta keys de l'action.
-	 *
-	 * @var string
-	 */
-	const META_PREFIX = 'action_ws_form_db_external_';
-
-	/**
-	 * Types de colonnes numériques, comparés au début du type MySQL.
+	 * Types entiers MySQL.
 	 *
 	 * @var string[]
 	 */
-	const NUMERIC_TYPES = array( 'tinyint', 'smallint', 'mediumint', 'int', 'bigint', 'decimal', 'numeric', 'float', 'double', 'real', 'bit' );
+	const INTEGER_TYPES = array( 'tinyint', 'smallint', 'mediumint', 'int', 'integer', 'bigint', 'bit' );
 
 	/**
-	 * Types de colonnes textuelles, où une chaîne vide reste une chaîne vide.
+	 * Types décimaux MySQL.
 	 *
 	 * @var string[]
 	 */
-	const TEXT_TYPES = array( 'char', 'varchar', 'tinytext', 'text', 'mediumtext', 'longtext', 'enum', 'set', 'json' );
+	const DECIMAL_TYPES = array( 'decimal', 'numeric', 'float', 'double', 'real' );
+
+	/**
+	 * Types où une chaîne vide est une valeur valide.
+	 *
+	 * @var string[]
+	 */
+	const STRING_TYPES = array( 'char', 'varchar', 'tinytext', 'text', 'mediumtext', 'longtext', 'enum', 'set', 'binary', 'varbinary', 'tinyblob', 'blob', 'mediumblob', 'longblob' );
 
 	/**
 	 * Traite la soumission selon la configuration de l'action.
@@ -45,7 +45,7 @@ class WS_Form_DB_Form_Submission_Handler {
 	 * @return array|WP_Error Résultat (inserted_id) ou erreur.
 	 */
 	public function handle_submission( $action_meta, $form, $submit ) {
-		$table_name = isset( $action_meta[ self::META_PREFIX . 'table' ] ) ? sanitize_text_field( $action_meta[ self::META_PREFIX . 'table' ] ) : '';
+		$table_name = isset( $action_meta[ WS_Form_DB_Connection_Settings::META_PREFIX . 'table' ] ) ? sanitize_text_field( $action_meta[ WS_Form_DB_Connection_Settings::META_PREFIX . 'table' ] ) : '';
 
 		if ( '' === $table_name ) {
 			return new WP_Error( 'ws_form_db_missing_table', __( 'No destination table is selected.', 'wsform-to-externaldb' ) );
@@ -76,15 +76,15 @@ class WS_Form_DB_Form_Submission_Handler {
 			return $row;
 		}
 
-		if ( false === $db->insert( $table_name, $row, array_fill( 0, count( $row ), '%s' ) ) ) {
+		if ( false === $db->insert( $table_name, $row['values'], $row['formats'] ) ) {
 			$reason = '' !== $db->last_error ? $db->last_error : __( 'The database rejected the insert.', 'wsform-to-externaldb' );
 
-			WS_Form_DB_Logger::log_insertion( $table_name, count( $row ), false, null, $reason );
+			WS_Form_DB_Logger::log_insertion( $table_name, count( $row['values'] ), false, null, $reason );
 
 			return new WP_Error( 'ws_form_db_insert_failed', $reason );
 		}
 
-		WS_Form_DB_Logger::log_insertion( $table_name, count( $row ), true, $db->insert_id );
+		WS_Form_DB_Logger::log_insertion( $table_name, count( $row['values'] ), true, $db->insert_id );
 
 		return array( 'inserted_id' => $db->insert_id );
 	}
@@ -97,7 +97,7 @@ class WS_Form_DB_Form_Submission_Handler {
 	 * @return array|WP_Error
 	 */
 	protected function get_mapping( $action_meta ) {
-		$mapping_raw = isset( $action_meta[ self::META_PREFIX . 'mapping' ] ) ? $action_meta[ self::META_PREFIX . 'mapping' ] : '';
+		$mapping_raw = isset( $action_meta[ WS_Form_DB_Connection_Settings::META_PREFIX . 'mapping' ] ) ? $action_meta[ WS_Form_DB_Connection_Settings::META_PREFIX . 'mapping' ] : '';
 
 		// Pas de wp_unslash() : il transformerait les \n du JSON en « n ».
 		$mapping = is_string( $mapping_raw ) ? json_decode( $mapping_raw, true ) : null;
@@ -117,21 +117,19 @@ class WS_Form_DB_Form_Submission_Handler {
 	 * @param mixed   $form    Objet formulaire WS Form.
 	 * @param mixed   $submit  Objet soumission WS Form.
 	 *
-	 * @return array|WP_Error
+	 * @return array{values:array,formats:string[]}|WP_Error
 	 */
 	protected function build_row( $mapping, $columns, $form, $submit ) {
-		$columns_by_name = array();
-		foreach ( $columns as $column ) {
-			$columns_by_name[ $column['name'] ] = $column;
-		}
-
-		$writable = WS_Form_DB_Table_Analyzer::get_writable_column_names( $columns );
-		$row      = array();
+		$writable = WS_Form_DB_Table_Analyzer::get_writable_columns( $columns );
+		$values   = array();
+		$formats  = array();
 
 		foreach ( $mapping as $column_name => $template ) {
-			// La colonne doit exister et accepter une valeur : c'est la seule garantie
-			// pour un identifiant qui ne passe pas par une requête préparée.
-			if ( ! in_array( $column_name, $writable, true ) ) {
+			// json_decode transforme une clé « 2024 » en entier.
+			$column_name = (string) $column_name;
+
+			// Seule garantie pour un identifiant qui ne passe pas par une requête préparée.
+			if ( ! isset( $writable[ $column_name ] ) ) {
 				return new WP_Error(
 					'ws_form_db_unknown_column',
 					sprintf(
@@ -142,17 +140,34 @@ class WS_Form_DB_Form_Submission_Handler {
 				);
 			}
 
-			$value = $this->resolve_value( (string) $template, $form, $submit );
-			$value = $this->adapt_to_column( $value, $columns_by_name[ $column_name ] );
+			$column    = $writable[ $column_name ];
+			$base_type = strtolower( (string) strtok( (string) $column['type'], '( ' ) );
+			$value     = $this->resolve_value( (string) $template, $form, $submit );
+
+			if ( '' === $value && ! in_array( $base_type, self::STRING_TYPES, true ) ) {
+				// Champ facultatif vide : NULL si permis, sinon la valeur par défaut de la base.
+				if ( 'YES' === $column['null'] ) {
+					$value = null;
+				} elseif ( null !== $column['default'] ) {
+					continue;
+				}
+			}
+
+			$value = $this->normalize_number( $value, $base_type, $column_name );
 
 			if ( is_wp_error( $value ) ) {
 				return $value;
 			}
 
-			$row[ $column_name ] = $value;
+			$values[ $column_name ] = $value;
+			// BIT attend un entier : la chaîne « 1 » vaudrait 0x31.
+			$formats[] = 'bit' === $base_type ? '%d' : '%s';
 		}
 
-		return $row;
+		return array(
+			'values'  => $values,
+			'formats' => $formats,
+		);
 	}
 
 	/**
@@ -193,31 +208,37 @@ class WS_Form_DB_Form_Submission_Handler {
 	}
 
 	/**
-	 * Adapte une valeur au type de sa colonne.
+	 * Valide une valeur destinée à une colonne numérique.
 	 *
-	 * Une chaîne vide devient NULL hors colonnes texte : sans ça, un champ
-	 * facultatif laissé vide finit en 0 ou en date nulle. Un texte dans une
-	 * colonne numérique est refusé plutôt que converti silencieusement en 0.
+	 * Un texte est refusé plutôt que converti en 0 par MySQL. La virgule décimale est acceptée.
 	 *
-	 * @param mixed $value  Valeur résolue.
-	 * @param array $column Description de la colonne.
+	 * @param mixed  $value       Valeur résolue.
+	 * @param string $base_type   Type MySQL sans taille.
+	 * @param string $column_name Nom de la colonne, pour le message.
 	 *
 	 * @return mixed|WP_Error
 	 */
-	protected function adapt_to_column( $value, $column ) {
-		$base_type = strtolower( (string) strtok( (string) $column['type'], '( ' ) );
+	protected function normalize_number( $value, $base_type, $column_name ) {
+		$is_integer = in_array( $base_type, self::INTEGER_TYPES, true );
+		$is_decimal = in_array( $base_type, self::DECIMAL_TYPES, true );
 
-		if ( '' === $value && ! in_array( $base_type, self::TEXT_TYPES, true ) && 'YES' === $column['null'] ) {
-			return null;
+		if ( ( ! $is_integer && ! $is_decimal ) || null === $value || '' === $value ) {
+			return $value;
 		}
 
-		if ( in_array( $base_type, self::NUMERIC_TYPES, true ) && '' !== $value && null !== $value && ! is_numeric( $value ) ) {
+		$value = trim( (string) $value );
+
+		if ( $is_decimal && preg_match( '/^-?\d+,\d+$/', $value ) ) {
+			$value = str_replace( ',', '.', $value );
+		}
+
+		if ( ! is_numeric( $value ) ) {
 			return new WP_Error(
 				'ws_form_db_not_numeric',
 				sprintf(
 					/* translators: %s: column name */
 					__( 'Column “%s” expects a number.', 'wsform-to-externaldb' ),
-					$column['name']
+					$column_name
 				)
 			);
 		}

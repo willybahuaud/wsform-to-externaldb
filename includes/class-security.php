@@ -15,13 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WS_Form_DB_Security {
 
 	/**
-	 * Capability requise pour configurer une connexion.
-	 *
-	 * @var string
-	 */
-	const ADMIN_CAPABILITY = 'manage_options';
-
-	/**
 	 * Longueur maximale d'un identifiant MySQL.
 	 *
 	 * @var int
@@ -88,8 +81,8 @@ class WS_Form_DB_Security {
 	/**
 	 * Valide un identifiant SQL (base, table, colonne).
 	 *
-	 * Les identifiants ne passent pas par les requêtes préparées : ils sont donc
-	 * limités aux caractères sans risque, puis comparés à la structure réelle.
+	 * Les identifiants ne passent pas par les requêtes préparées : sans backtick ni point,
+	 * ils restent sûrs entre backticks, et sont ensuite comparés à la structure réelle.
 	 *
 	 * @param string $name Identifiant.
 	 *
@@ -98,12 +91,12 @@ class WS_Form_DB_Security {
 	public static function validate_sql_identifier( $name ) {
 		$name = (string) $name;
 
-		if ( '' === $name || strlen( $name ) > self::MAX_SQL_IDENTIFIER_LENGTH || ! preg_match( '/^[A-Za-z0-9_$]+$/', $name ) ) {
+		if ( '' === $name || strlen( $name ) > self::MAX_SQL_IDENTIFIER_LENGTH || ! preg_match( '/^[A-Za-z0-9_$-]+$/', $name ) ) {
 			return new WP_Error(
 				'ws_form_db_invalid_identifier',
 				sprintf(
 					/* translators: %s: rejected identifier */
-					__( 'SQL identifier rejected: “%s”. Only unaccented letters, digits, _ and $ are allowed.', 'wsform-to-externaldb' ),
+					__( 'SQL identifier rejected: “%s”. Only unaccented letters, digits, _, - and $ are allowed.', 'wsform-to-externaldb' ),
 					$name
 				)
 			);
@@ -113,12 +106,37 @@ class WS_Form_DB_Security {
 	}
 
 	/**
+	 * Capability requise pour tester une connexion, lire la structure et voir les échecs.
+	 *
+	 * En multisite, un admin de site ne doit pas pouvoir sonder le réseau depuis l'éditeur.
+	 *
+	 * @return string
+	 */
+	public static function get_capability() {
+		/**
+		 * Filtre la capability requise par l'éditeur et la notice d'échec.
+		 *
+		 * @param string $capability manage_options, ou manage_network_options en multisite.
+		 */
+		return (string) apply_filters( 'ws_form_db_capability', is_multisite() ? 'manage_network_options' : 'manage_options' );
+	}
+
+	/**
+	 * Indique si l'utilisateur courant a les droits du plugin.
+	 *
+	 * @return bool
+	 */
+	public static function current_user_can_manage() {
+		return current_user_can( self::get_capability() );
+	}
+
+	/**
 	 * Arrête la requête AJAX si l'utilisateur n'a pas les droits.
 	 *
 	 * @return void
 	 */
 	public static function require_capability() {
-		if ( ! current_user_can( self::ADMIN_CAPABILITY ) ) {
+		if ( ! self::current_user_can_manage() ) {
 			wp_send_json_error(
 				array( 'message' => __( 'You are not allowed to do this.', 'wsform-to-externaldb' ) ),
 				403

@@ -12,12 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once ABSPATH . WPINC . '/class-wpdb.php';
 
 /**
- * Variante de wpdb qui échoue vite et sans bruit.
- *
- * Le wpdb natif attend jusqu'à default_socket_timeout (60 s par défaut) quand
- * l'hôte ne répond pas, puis appelle bail() : avec WP_DEBUG, la requête du
- * visiteur meurt sur la page « Erreur de connexion à la base de données »,
- * qui affiche l'hôte. Une base externe en panne ne doit jamais faire ça.
+ * Variante de wpdb qui échoue vite et sans bail() : une base externe en panne ne doit ni bloquer ni tuer la requête.
  */
 class WS_Form_DB_External_Wpdb extends wpdb {
 
@@ -34,6 +29,20 @@ class WS_Form_DB_External_Wpdb extends wpdb {
 	 * @var int
 	 */
 	private $connect_timeout = self::DEFAULT_CONNECT_TIMEOUT;
+
+	/**
+	 * Résultat de WS_Form_DB_WordPress_Guard, calculé une fois par connexion.
+	 *
+	 * @var bool|null
+	 */
+	public $is_wordpress_database = null;
+
+	/**
+	 * Une seule tentative de reconnexion : chaque tentative ratée coûte une seconde au visiteur.
+	 *
+	 * @var int
+	 */
+	protected $reconnect_retries = 1;
 
 	/**
 	 * Mémorise le délai puis se connecte.
@@ -89,6 +98,17 @@ class WS_Form_DB_External_Wpdb extends wpdb {
 		ini_set( 'default_socket_timeout', $previous_timeout ); // phpcs:ignore WordPress.PHP.IniSet.Risky, Squiz.PHP.DiscouragedFunctions.Discouraged -- Restauré juste après la connexion.
 
 		return $connected;
+	}
+
+	/**
+	 * Tente de rétablir une connexion perdue, sans jamais appeler dead_db().
+	 *
+	 * @param bool $allow_bail Ignoré.
+	 *
+	 * @return bool
+	 */
+	public function check_connection( $allow_bail = false ) {
+		return parent::check_connection( false );
 	}
 
 	/**

@@ -100,6 +100,7 @@ function ws_form_db_init_components() {
 	if ( is_admin() ) {
 		WS_Form_DB_Admin_Ajax::register();
 		WS_Form_DB_Failure_Notifier::register();
+		WS_Form_DB_Editor_Assets::register();
 	}
 }
 

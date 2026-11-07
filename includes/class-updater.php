@@ -10,20 +10,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Propose les releases GitHub comme mises à jour du plugin.
+ * Mises à jour depuis les releases GitHub, via l'en-tête Update URI.
  *
- * Repose sur l'en-tête « Update URI » : WordPress appelle alors le filtre
- * update_plugins_github.com et range lui-même le résultat en mise à jour
- * disponible ou en « à jour ». L'interrupteur des mises à jour automatiques
- * s'affiche donc dans les deux cas, et un plugin de même slug sur
- * WordPress.org ne peut jamais remplacer celui-ci.
- *
- * Une release n'est proposée que si son tag est une version lisible et si
- * l'archive <slug>-X.Y.Z.zip y est jointe : le zip généré par GitHub contient
- * tout le dépôt et ne doit pas partir chez les utilisateurs.
- *
- * L'API est appelée sans jeton : un jeton serait distribué avec le plugin.
- * Le mécanisme ne fonctionne donc qu'avec un dépôt public.
+ * Seule une release avec un tag vX.Y.Z et l'archive <slug>-X.Y.Z.zip est proposée.
+ * Appels anonymes : le dépôt doit être public.
  */
 class WS_Form_DB_Updater {
 
@@ -295,9 +285,7 @@ class WS_Form_DB_Updater {
 	/**
 	 * Lit les versions requises dans le readme.txt du tag.
 	 *
-	 * Le fichier est servi par raw.githubusercontent.com, qui ne compte pas
-	 * dans la limite de l'API. S'il est illisible, WordPress n'a simplement
-	 * pas d'information de compatibilité.
+	 * Ce fichier, servi par raw.githubusercontent.com, ne compte pas dans la limite de l'API.
 	 *
 	 * @param string $tag Tag de la release.
 	 *

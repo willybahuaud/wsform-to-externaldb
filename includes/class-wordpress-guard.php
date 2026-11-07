@@ -10,20 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Empêche d'utiliser le plugin pour écrire dans la base WordPress.
+ * Refuse la base WordPress, comparée par l'identité du serveur et non par le nom d'hôte
+ * (une IP ou un alias contournerait la comparaison).
  *
- * Un compte admin compromis ne doit pas pouvoir s'en servir pour toucher à
- * wp_users ou wp_options. La comparaison se fait sur l'identité réelle du
- * serveur (nom, port, base courante) interrogée après connexion : comparer
- * les noms d'hôte se contourne avec une IP ou un alias DNS.
- *
- * Réglages possibles dans wp-config.php :
- *
- *     // Autoriser quelques tables de la base WordPress.
- *     define( 'WS_FORM_DB_ALLOWED_WP_TABLES', array( 'wp_custom_leads' ) );
- *
- *     // Lever toute protection (déconseillé).
- *     define( 'WS_FORM_DB_ALLOW_WORDPRESS_DATABASE', true );
+ * Exceptions dans wp-config.php : WS_FORM_DB_ALLOWED_WP_TABLES (tables autorisées)
+ * ou WS_FORM_DB_ALLOW_WORDPRESS_DATABASE (aucune protection).
  */
 class WS_Form_DB_WordPress_Guard {
 
@@ -40,13 +31,6 @@ class WS_Form_DB_WordPress_Guard {
 	 * @var string
 	 */
 	const ALLOW_ALL_CONSTANT = 'WS_FORM_DB_ALLOW_WORDPRESS_DATABASE';
-
-	/**
-	 * Résultats déjà calculés, par identifiant d'objet wpdb.
-	 *
-	 * @var array<int,bool>
-	 */
-	private static $results = array();
 
 	/**
 	 * Refuse la connexion si elle mène à la base WordPress sans table autorisée.
@@ -132,17 +116,15 @@ class WS_Form_DB_WordPress_Guard {
 	/**
 	 * Détermine si la connexion externe pointe vers la base WordPress.
 	 *
-	 * @param wpdb $external_db Connexion externe ouverte.
+	 * @param WS_Form_DB_External_Wpdb $external_db Connexion externe ouverte.
 	 *
 	 * @return bool
 	 */
 	public static function is_wordpress_database( $external_db ) {
 		global $wpdb;
 
-		$object_id = spl_object_id( $external_db );
-
-		if ( isset( self::$results[ $object_id ] ) ) {
-			return self::$results[ $object_id ];
+		if ( null !== $external_db->is_wordpress_database ) {
+			return $external_db->is_wordpress_database;
 		}
 
 		$external_identity  = self::get_server_identity( $external_db );
@@ -151,7 +133,7 @@ class WS_Form_DB_WordPress_Guard {
 		// Si l'identité est illisible, on bloque : mieux vaut un faux positif qu'une écriture dans wp_users.
 		$is_wordpress = ( null === $external_identity || $external_identity === $wordpress_identity );
 
-		self::$results[ $object_id ] = $is_wordpress;
+		$external_db->is_wordpress_database = $is_wordpress;
 
 		return $is_wordpress;
 	}

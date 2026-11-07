@@ -2,7 +2,7 @@
  * Éditeur des lignes de mapping colonne => modèle de valeur.
  */
 
-import { escapeHtml, i18n } from './helpers';
+import { escapeHtml, i18nHtml } from './helpers';
 
 const $ = window.jQuery;
 
@@ -53,15 +53,15 @@ export default class MappingEditor {
 			.empty()
 			.append(
 				'<div class="wsf-db-section-title">' +
-					i18n( 'mappingTitle' ) +
+					i18nHtml( 'mappingTitle' ) +
 					'</div>' +
 					'<p class="wsf-db-mapping-intro">' +
-					i18n( 'mappingIntro' ) +
+					i18nHtml( 'mappingIntro' ) +
 					'</p>' +
 					'<div class="wsf-db-mapping-repeater">' +
 					'<div class="wsf-db-mapping-rows-list"></div>' +
 					'<button type="button" class="wsf-button wsf-button-small wsf-db-add-mapping">+ ' +
-					i18n( 'addMapping' ) +
+					i18nHtml( 'addMapping' ) +
 					'</button>' +
 					'</div>'
 			);
@@ -104,14 +104,14 @@ export default class MappingEditor {
 				'<div class="wsf-db-mapping-row-header">' +
 				this.buildColumnSelect( column ) +
 				'<button type="button" class="wsf-db-remove-row" title="' +
-				i18n( 'removeRow' ) +
+				i18nHtml( 'removeRow' ) +
 				'">×</button>' +
 				'</div>' +
 				'<div class="wsf-db-mapping-row-value"><div class="wsf-field-wrapper">' +
 				'<textarea class="wsf-db-value-textarea wsf-field" rows="2" data-meta-key="' +
 				metaKey +
 				'" placeholder="' +
-				i18n( 'valuePlaceholder' ) +
+				i18nHtml( 'valuePlaceholder' ) +
 				'">' +
 				escapeHtml( value ) +
 				'</textarea>' +
@@ -119,7 +119,7 @@ export default class MappingEditor {
 				'<ul class="wsf-field-options"><li><div data-action="wsf-variable-helper" data-option-meta-key="' +
 				metaKey +
 				'" title="' +
-				i18n( 'variables' ) +
+				i18nHtml( 'variables' ) +
 				'">' +
 				VARIABLES_ICON +
 				'</div></li></ul>' +
@@ -140,7 +140,7 @@ export default class MappingEditor {
 		const usedColumns = this.getUsedColumns();
 		let html =
 			'<select class="wsf-db-column-select wsf-field"><option value="">' +
-			i18n( 'selectColumn' ) +
+			i18nHtml( 'selectColumn' ) +
 			'</option>';
 
 		for ( const column of this.columns ) {
@@ -157,7 +157,7 @@ export default class MappingEditor {
 				' (' +
 				escapeHtml( column.type ) +
 				')' +
-				( isUsed ? ' - ' + i18n( 'alreadyUsed' ) : '' ) +
+				( isUsed ? ' - ' + i18nHtml( 'alreadyUsed' ) : '' ) +
 				'</option>';
 		}
 

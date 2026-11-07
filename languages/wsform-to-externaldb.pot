@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: External Database for WS Form 1.0.0\n"
+"Project-Id-Version: External Database for WS Form 1.0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/willybahuaud/wsform-to-externaldb/issues\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-07T14:27:30+01:00\n"
+"POT-Creation-Date: 2026-11-07T15:03:11+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wsform-to-externaldb\n"
@@ -34,74 +34,143 @@ msgstr ""
 msgid "https://wabeo.fr"
 msgstr ""
 
-#: includes/class-admin-ajax.php:49
+#: includes/class-admin-ajax.php:43
 msgid "Connection successful."
 msgstr ""
 
-#: includes/class-admin-ajax.php:104
-msgid "Missing form ID."
-msgstr ""
-
 #. translators: 1: connection name, 2: constant name
-#: includes/class-connection-settings.php:159
+#: includes/class-connection-settings.php:180
 #, php-format
 msgid "Connection “%1$s” is not declared in %2$s."
 msgstr ""
 
-#: includes/class-connection.php:54
+#: includes/class-connection.php:49
 msgid "Server unreachable or credentials rejected."
 msgstr ""
 
 #. translators: %s: failure reason
-#: includes/class-connection.php:62
+#: includes/class-connection.php:57
 #, php-format
 msgid "Cannot connect to the external database: %s"
 msgstr ""
 
-#: includes/class-failure-notifier.php:104
+#: includes/class-editor-assets.php:82
+msgid "Connection successful!"
+msgstr ""
+
+#: includes/class-editor-assets.php:83
+msgid "Connection failed."
+msgstr ""
+
+#: includes/class-editor-assets.php:84
+msgid "Tables loaded."
+msgstr ""
+
+#: includes/class-editor-assets.php:85
+msgid "Could not load the tables."
+msgstr ""
+
+#: includes/class-editor-assets.php:86
+msgid "Table analyzed."
+msgstr ""
+
+#: includes/class-editor-assets.php:87
+msgid "Analysis failed."
+msgstr ""
+
+#: includes/class-editor-assets.php:88
+msgid "No mappable column found."
+msgstr ""
+
+#: includes/class-editor-assets.php:89
+msgid "Loading…"
+msgstr ""
+
+#: includes/class-editor-assets.php:90
+msgid "Please select a table."
+msgstr ""
+
+#: includes/class-editor-assets.php:91
+msgid "Incomplete connection settings."
+msgstr ""
+
+#: includes/class-editor-assets.php:92
+msgid "-- Select a table --"
+msgstr ""
+
+#: includes/class-editor-assets.php:93
+msgid "Add mapping"
+msgstr ""
+
+#: includes/class-editor-assets.php:94
+msgid "-- Column --"
+msgstr ""
+
+#: includes/class-editor-assets.php:95
+msgid "#field(123), #email, text..."
+msgstr ""
+
+#: includes/class-editor-assets.php:96
+msgid "already used"
+msgstr ""
+
+#: includes/class-editor-assets.php:97
+msgid "Use WS Form variables: #field(ID), #email, #blog_time..."
+msgstr ""
+
+#: includes/class-editor-assets.php:98
+msgid "Column mapping"
+msgstr ""
+
+#: includes/class-editor-assets.php:99
+msgid "Remove"
+msgstr ""
+
+#: includes/class-editor-assets.php:100
+msgid "Variables"
+msgstr ""
+
+#: includes/class-editor-assets.php:101
+msgid "The request failed."
+msgstr ""
+
+#: includes/class-editor-assets.php:102
+msgid ""
+"WS Form variables: #field(ID), #email, #blog_time, #user_id...\n"
+"\n"
+"See the WS Form documentation for the full list."
+msgstr ""
+
+#: includes/class-failure-notifier.php:100
 msgid "External database:"
 msgstr ""
 
 #. translators: 1: number of failures, 2: form ID, 3: date
-#: includes/class-failure-notifier.php:108
+#: includes/class-failure-notifier.php:104
 #, php-format
 msgid "%1$d submission could not be inserted. Last failure on form #%2$d, on %3$s. The data is still in the WS Form submissions."
 msgid_plural "%1$d submissions could not be inserted. Last failure on form #%2$d, on %3$s. The data is still in the WS Form submissions."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-failure-notifier.php:121
+#: includes/class-failure-notifier.php:117
 msgid "Mark as read"
 msgstr ""
 
-#: includes/class-failure-notifier.php:132
-#: includes/class-security.php:123
+#: includes/class-failure-notifier.php:128
+#: includes/class-security.php:141
 msgid "You are not allowed to do this."
 msgstr ""
 
-#: includes/class-failure-notifier.php:158
+#: includes/class-failure-notifier.php:154
 #: includes/class-ws-form-action.php:124
 msgid "External database"
 msgstr ""
 
 #. translators: %s: error message
-#: includes/class-failure-notifier.php:161
+#: includes/class-failure-notifier.php:157
 #, php-format
 msgid "Insert into the external database failed: %s"
-msgstr ""
-
-#: includes/class-field-mapper.php:30
-msgid "Invalid WS Form form."
-msgstr ""
-
-#: includes/class-field-mapper.php:54
-msgid "Could not read the form fields."
-msgstr ""
-
-#. translators: %d: field ID
-#: includes/class-field-mapper.php:84
-#, php-format
-msgid "Field #%d"
 msgstr ""
 
 #: includes/class-form-submission-handler.php:51
@@ -117,35 +186,35 @@ msgid "The column mapping is empty or unreadable."
 msgstr ""
 
 #. translators: %s: column name
-#: includes/class-form-submission-handler.php:139
+#: includes/class-form-submission-handler.php:137
 #, php-format
 msgid "Column “%s” does not exist or cannot receive a value."
 msgstr ""
 
 #. translators: %s: column name
-#: includes/class-form-submission-handler.php:219
+#: includes/class-form-submission-handler.php:240
 #, php-format
 msgid "Column “%s” expects a number."
 msgstr ""
 
 #. translators: %s: setting name
-#: includes/class-security.php:45
+#: includes/class-security.php:38
 #, php-format
 msgid "The “%s” setting is required."
 msgstr ""
 
-#: includes/class-security.php:59
+#: includes/class-security.php:52
 msgid "The port must be between 1 and 65535."
 msgstr ""
 
-#: includes/class-security.php:85
+#: includes/class-security.php:78
 msgid "The host must be an IP address or a domain name, without a port."
 msgstr ""
 
 #. translators: %s: rejected identifier
-#: includes/class-security.php:106
+#: includes/class-security.php:99
 #, php-format
-msgid "SQL identifier rejected: “%s”. Only unaccented letters, digits, _ and $ are allowed."
+msgid "SQL identifier rejected: “%s”. Only unaccented letters, digits, _, - and $ are allowed."
 msgstr ""
 
 #. translators: %s: table name
@@ -154,22 +223,22 @@ msgstr ""
 msgid "Table “%s” does not exist in the external database."
 msgstr ""
 
-#: includes/class-updater.php:228
+#: includes/class-updater.php:218
 msgid "Could not rename the plugin folder during the update."
 msgstr ""
 
-#: includes/class-updater.php:411
+#: includes/class-updater.php:399
 msgid "No release notes."
 msgstr ""
 
 #. translators: %s: constant name
-#: includes/class-wordpress-guard.php:73
+#: includes/class-wordpress-guard.php:57
 #, php-format
 msgid "This connection leads to the WordPress database, which is refused by default. To allow specific tables, define %s in wp-config.php."
 msgstr ""
 
 #. translators: 1: table name, 2: constant name
-#: includes/class-wordpress-guard.php:100
+#: includes/class-wordpress-guard.php:84
 #, php-format
 msgid "WordPress database table “%1$s” is not allowed. Add it to %2$s in wp-config.php."
 msgstr ""
@@ -178,177 +247,90 @@ msgstr ""
 msgid "Insert into database"
 msgstr ""
 
-#: includes/class-ws-form-action.php:145
+#: includes/class-ws-form-action.php:154
 msgid "Connection"
 msgstr ""
 
-#: includes/class-ws-form-action.php:149
+#: includes/class-ws-form-action.php:158
 msgid "A connection declared in wp-config.php (WS_FORM_DB_CONNECTIONS constant) keeps the password out of the WordPress database and out of form exports."
 msgstr ""
 
-#: includes/class-ws-form-action.php:154
+#: includes/class-ws-form-action.php:163
 msgid "Host"
 msgstr ""
 
-#: includes/class-ws-form-action.php:156
+#: includes/class-ws-form-action.php:165
 msgid "MySQL or MariaDB server address, without the port."
 msgstr ""
 
-#: includes/class-ws-form-action.php:163
+#: includes/class-ws-form-action.php:172
 msgid "User"
 msgstr ""
 
-#: includes/class-ws-form-action.php:165
+#: includes/class-ws-form-action.php:174
 msgid "Grant it only the INSERT privilege on the target table."
 msgstr ""
 
-#: includes/class-ws-form-action.php:172
+#: includes/class-ws-form-action.php:181
 msgid "Password"
 msgstr ""
 
-#: includes/class-ws-form-action.php:174
+#: includes/class-ws-form-action.php:183
 msgid "Stored in plain text with the form, and included in its exports and copies. Prefer a connection declared in wp-config.php."
 msgstr ""
 
-#: includes/class-ws-form-action.php:181
+#: includes/class-ws-form-action.php:190
 msgid "Port"
 msgstr ""
 
-#: includes/class-ws-form-action.php:183
+#: includes/class-ws-form-action.php:192
 msgid "3306 by default."
 msgstr ""
 
-#: includes/class-ws-form-action.php:192
+#: includes/class-ws-form-action.php:201
 msgid "Database"
 msgstr ""
 
-#: includes/class-ws-form-action.php:207
+#: includes/class-ws-form-action.php:216
 msgid "Target table"
 msgstr ""
 
-#: includes/class-ws-form-action.php:212
+#: includes/class-ws-form-action.php:221
 msgid "-- Load tables --"
 msgstr ""
 
-#: includes/class-ws-form-action.php:215
+#: includes/class-ws-form-action.php:224
 msgid "Select…"
 msgstr ""
 
-#: includes/class-ws-form-action.php:217
+#: includes/class-ws-form-action.php:226
 msgid "Click “Load tables” to fill this list."
 msgstr ""
 
-#: includes/class-ws-form-action.php:339
+#: includes/class-ws-form-action.php:362
 msgid "Manual settings"
 msgstr ""
 
-#: includes/class-ws-form-action.php:382
+#: includes/class-ws-form-action.php:405
 msgid "Test connection"
 msgstr ""
 
-#: includes/class-ws-form-action.php:385
+#: includes/class-ws-form-action.php:408
 msgid "Load tables"
 msgstr ""
 
-#: includes/class-ws-form-action.php:388
+#: includes/class-ws-form-action.php:411
 msgid "Analyze table"
-msgstr ""
-
-#: includes/class-ws-form-action.php:469
-msgid "Connection successful!"
-msgstr ""
-
-#: includes/class-ws-form-action.php:470
-msgid "Connection failed."
-msgstr ""
-
-#: includes/class-ws-form-action.php:471
-msgid "Tables loaded."
-msgstr ""
-
-#: includes/class-ws-form-action.php:472
-msgid "Could not load the tables."
-msgstr ""
-
-#: includes/class-ws-form-action.php:473
-msgid "Table analyzed."
-msgstr ""
-
-#: includes/class-ws-form-action.php:474
-msgid "Analysis failed."
-msgstr ""
-
-#: includes/class-ws-form-action.php:475
-msgid "No mappable column found."
-msgstr ""
-
-#: includes/class-ws-form-action.php:476
-msgid "Loading…"
-msgstr ""
-
-#: includes/class-ws-form-action.php:477
-msgid "Please select a table."
-msgstr ""
-
-#: includes/class-ws-form-action.php:478
-msgid "Incomplete connection settings."
-msgstr ""
-
-#: includes/class-ws-form-action.php:479
-msgid "-- Select a table --"
-msgstr ""
-
-#: includes/class-ws-form-action.php:480
-msgid "Add mapping"
-msgstr ""
-
-#: includes/class-ws-form-action.php:481
-msgid "-- Column --"
-msgstr ""
-
-#: includes/class-ws-form-action.php:482
-msgid "#field(123), #email, text..."
-msgstr ""
-
-#: includes/class-ws-form-action.php:483
-msgid "already used"
-msgstr ""
-
-#: includes/class-ws-form-action.php:484
-msgid "Use WS Form variables: #field(ID), #email, #blog_time..."
-msgstr ""
-
-#: includes/class-ws-form-action.php:485
-msgid "Column mapping"
-msgstr ""
-
-#: includes/class-ws-form-action.php:486
-msgid "Remove"
-msgstr ""
-
-#: includes/class-ws-form-action.php:487
-msgid "Variables"
-msgstr ""
-
-#: includes/class-ws-form-action.php:488
-msgid "The request failed."
-msgstr ""
-
-#: includes/class-ws-form-action.php:489
-msgid ""
-"WS Form variables: #field(ID), #email, #blog_time, #user_id...\n"
-"\n"
-"See the WS Form documentation for the full list."
 msgstr ""
 
 #: wsform-to-externaldb.php:58
 msgid "WS Form must be active to use External Database for WS Form."
 msgstr ""
 
-#: wsform-to-externaldb.php:146
+#: wsform-to-externaldb.php:147
 msgid "WS Form must be installed and active before activating External Database for WS Form."
 msgstr ""
 
-#: wsform-to-externaldb.php:147
+#: wsform-to-externaldb.php:148
 msgid "Activation failed"
 msgstr ""

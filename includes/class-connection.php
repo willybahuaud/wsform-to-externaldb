@@ -41,12 +41,7 @@ class WS_Form_DB_Connection {
 			return self::$connections[ $key ];
 		}
 
-		$host = $params['host'];
-		if ( WS_Form_DB_Connection_Settings::DEFAULT_PORT !== (int) $params['port'] ) {
-			$host .= ':' . (int) $params['port'];
-		}
-
-		$db = new WS_Form_DB_External_Wpdb( $params['user'], $params['password'], $params['database'], $host, $params['timeout'] );
+		$db = new WS_Form_DB_External_Wpdb( $params['user'], $params['password'], $params['database'], self::build_host( $params ), $params['timeout'] );
 
 		// ready reste à false si la connexion ou la sélection de la base a échoué.
 		if ( empty( $db->dbh ) || ! $db->ready ) {
@@ -78,6 +73,33 @@ class WS_Form_DB_Connection {
 		self::$connections[ $key ] = $db;
 
 		return $db;
+	}
+
+	/**
+	 * Construit l'hôte au format attendu par wpdb.
+	 *
+	 * Avec « localhost », mysqli passe par le socket et ignore le port : on force TCP.
+	 * Une IPv6 suivie d'un port doit être entre crochets.
+	 *
+	 * @param array $params Paramètres de connexion.
+	 *
+	 * @return string
+	 */
+	private static function build_host( $params ) {
+		$host = $params['host'];
+		$port = (int) $params['port'];
+
+		if ( WS_Form_DB_Connection_Settings::DEFAULT_PORT === $port ) {
+			return $host;
+		}
+
+		if ( 'localhost' === strtolower( $host ) ) {
+			$host = '127.0.0.1';
+		} elseif ( filter_var( $host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
+			$host = '[' . $host . ']';
+		}
+
+		return $host . ':' . $port;
 	}
 
 	/**
