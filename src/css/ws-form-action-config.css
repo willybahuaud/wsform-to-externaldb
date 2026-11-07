@@ -1,0 +1,252 @@
+/**
+ * Styles pour l'action WS Form DB External.
+ */
+
+/* === Boutons d'action === */
+.wsf-db-action-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 10px 0;
+	align-items: center;
+}
+
+.wsf-db-action-buttons button {
+	flex-shrink: 0;
+}
+
+.wsf-db-action-buttons button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* === Statut de connexion === */
+.wsf-db-connection-status {
+	flex: 1 1 100%;
+	min-height: 24px;
+	padding: 6px 10px;
+	border-radius: 4px;
+	font-size: 12px;
+	margin-top: 8px;
+}
+
+.wsf-db-status-success {
+	background: #d4edda;
+	color: #155724;
+	border: 1px solid #c3e6cb;
+}
+
+.wsf-db-status-error {
+	background: #f8d7da;
+	color: #721c24;
+	border: 1px solid #f5c6cb;
+}
+
+.wsf-db-status-info {
+	background: #d1ecf1;
+	color: #0c5460;
+	border: 1px solid #bee5eb;
+}
+
+/* === Interface de mapping === */
+.wsf-db-mapping-ui {
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid #ddd;
+}
+
+/* === Intro du mapping === */
+.wsf-db-mapping-intro {
+	font-size: 12px;
+	color: #666;
+	margin: 0 0 12px 0;
+	font-style: italic;
+}
+
+/* === Titres de section === */
+.wsf-db-section-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #333;
+	margin-bottom: 10px;
+}
+
+/* === Repeater de mapping === */
+.wsf-db-mapping-repeater {
+	margin-top: 12px;
+}
+
+.wsf-db-mapping-rows-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+/* === Ligne de mapping === */
+.wsf-db-mapping-row {
+	background: #f8f9fa;
+	border: 1px solid #e0e0e0;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.wsf-db-mapping-row-header {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding: 10px;
+	background: #eef0f2;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.wsf-db-mapping-row-header .wsf-db-column-select {
+	flex: 1;
+	min-width: 0;
+}
+
+.wsf-db-mapping-row-header .wsf-db-remove-row {
+	flex-shrink: 0;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: none;
+	border-radius: 4px;
+	background: #dc3545;
+	color: white;
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.wsf-db-mapping-row-header .wsf-db-remove-row:hover {
+	background: #c82333;
+}
+
+/* === Zone de valeur === */
+.wsf-db-mapping-row-value {
+	padding: 10px;
+}
+
+.wsf-db-mapping-row-value .wsf-field-wrapper {
+	position: relative;
+}
+
+.wsf-db-mapping-row-value .wsf-db-value-textarea {
+	width: 100%;
+	min-height: 60px;
+	resize: vertical;
+	font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+	font-size: 12px;
+	line-height: 1.5;
+	padding: 8px;
+	padding-right: 32px;
+	border: 1px solid #ced4da;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.wsf-db-mapping-row-value .wsf-db-value-textarea:focus {
+	border-color: #80bdff;
+	outline: 0;
+	box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.wsf-db-mapping-row-value .wsf-db-value-textarea::placeholder {
+	color: #adb5bd;
+	font-style: italic;
+}
+
+/* === Bouton Variable Helper (intégré WS Form) === */
+.wsf-db-mapping-row-value .wsf-field-options {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.wsf-db-mapping-row-value .wsf-field-options li {
+	margin: 0;
+	padding: 0;
+}
+
+.wsf-db-mapping-row-value .wsf-field-options [data-action="wsf-variable-helper"] {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	cursor: pointer;
+	border-radius: 3px;
+	background: rgba(255, 255, 255, 0.9);
+	transition: all 0.15s ease;
+}
+
+.wsf-db-mapping-row-value .wsf-field-options [data-action="wsf-variable-helper"]:hover {
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.wsf-db-mapping-row-value .wsf-field-options [data-action="wsf-variable-helper"] svg {
+	fill: #2271b1;
+	width: 14px;
+	height: 14px;
+}
+
+.wsf-db-mapping-row-value .wsf-field-options [data-action="wsf-variable-helper"]:hover svg {
+	fill: #135e96;
+}
+
+/* === Bouton ajouter mapping === */
+.wsf-db-add-mapping {
+	margin-top: 8px;
+}
+
+/* === Help text === */
+.wsf-db-mapping-help {
+	font-size: 12px;
+	color: #6c757d;
+	margin: 8px 0;
+}
+
+/* === Champs avec options désactivées === */
+.wsf-db-column-select option:disabled {
+	color: #adb5bd;
+	font-style: italic;
+}
+
+/* === Animation loading === */
+.wsf-db-status-info::before {
+	content: "";
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	margin-right: 6px;
+	animation: wsf-db-spin 0.75s linear infinite;
+	vertical-align: middle;
+}
+
+@keyframes wsf-db-spin {
+	100% {
+		transform: rotate(360deg);
+}
+}
+
+/* === Responsive === */
+@media (max-width: 500px) {
+	.wsf-db-mapping-row-header {
+		flex-wrap: wrap;
+}
+
+	.wsf-db-mapping-row-header .wsf-db-column-select {
+		flex: 1 1 calc(100% - 40px);
+	}
+}

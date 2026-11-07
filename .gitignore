@@ -1,0 +1,72 @@
+# Dépendances
+node_modules/
+vendor/
+
+# Fichiers de build (generes automatiquement)
+admin/js/*.js
+admin/js/*.js.map
+admin/js/*.asset.php
+admin/css/*.css
+admin/css/*.css.map
+
+# Fichiers de configuration locaux
+.env
+.env.local
+*.local.php
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# Fichiers système
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# WordPress
+wp-config.php
+.htaccess
+
+# Fichiers temporaires
+tmp/
+temp/
+*.tmp
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+*.old
+
+# Fichiers de test
+.phpunit.result.cache
+coverage/
+.nyc_output/
+
+# Fichiers de build WordPress Scripts
+build/
+dist/
+
+# Fichiers de traduction compilés (sauf ceux du plugin, livrés tels quels)
+*.mo
+!languages/*.mo
+# Garder les .pot pour les traductions
+# *.pot

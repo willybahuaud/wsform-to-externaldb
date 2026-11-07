@@ -1,0 +1,13 @@
+{
+    "root": true,
+    "extends": ["plugin:@wordpress/eslint-plugin/recommended"],
+    "env": {
+        "browser": true,
+        "es6": true,
+        "jquery": true
+    },
+    "globals": {
+        "wp": "readonly"
+    },
+    "ignorePatterns": ["admin/js/**/*.js", "build/**/*.js", "dist/**/*.js"]
+}

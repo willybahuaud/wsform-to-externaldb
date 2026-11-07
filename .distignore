@@ -1,0 +1,42 @@
+# Exclus de l'archive de distribution (wp dist-archive).
+# L'archive ne garde que le plugin : PHP, build JS/CSS, traductions, readme.txt.
+
+# Outils et dependances de developpement
+/.git
+/.gitignore
+/.distignore
+/.eslintrc.json
+/.prettierrc
+/.stylelintrc.json
+/.playwright-mcp
+/node_modules
+/vendor
+/composer.json
+/composer.lock
+/package.json
+/package-lock.json
+/phpcs.xml.dist
+/webpack.config.js
+
+# Sources (le build est dans admin/js et admin/css)
+/src
+
+# Documentation et fichiers locaux
+/docs
+/CLAUDE.md
+/LOCAL.md
+/README.md
+/VARIABLES.md
+
+# Cartes de sources du build
+/admin/js/*.map
+/admin/css/*.map
+
+# Fichiers systeme
+.DS_Store
+.gitkeep
+
+# Outillage de release
+/bin
+/.github
+/dist
