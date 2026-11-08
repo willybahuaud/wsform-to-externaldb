@@ -1,7 +1,8 @@
 # Publie une release GitHub quand un tag vX.Y.Z est poussé.
 #
 # L'archive jointe est celle que l'updater du plugin propose aux sites :
-# sans elle, aucune mise à jour n'est proposée.
+# sans elle, aucune mise à jour n'est proposée. Le manifeste JSON donne
+# les versions requises de cette release.
 
 name: Release
 
@@ -17,18 +18,19 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      # Actions épinglées sur un commit : un tag peut être déplacé, et ce job publie.
       # Le jeton d'écriture ne reste pas dans .git/config pendant l'installation des dépendances.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
 
       # Échoue si le tag ne correspond pas à la version déclarée dans le plugin.
-      - name: Build archive
+      - name: Build archive and manifest
         run: bin/build-release.sh "${GITHUB_REF_NAME#v}"
 
       # Les notes de release reprennent le message du tag annoté.
@@ -38,6 +40,7 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" \
             "dist/wsform-to-externaldb-${GITHUB_REF_NAME#v}.zip" \
+            "dist/wsform-to-externaldb-${GITHUB_REF_NAME#v}.json" \
             --verify-tag \
             --title "$GITHUB_REF_NAME" \
             --notes-from-tag
