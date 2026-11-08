@@ -4,7 +4,7 @@ Tags: ws form, database, mysql, mariadb, form submission
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,12 @@ Only `INSERT` on the target table. MySQL and MariaDB then let it list that table
 From the GitHub releases of its repository, through the usual WordPress update screen. Automatic updates can be turned on in the plugin list.
 
 == Changelog ==
+
+= 1.0.3 =
+* Updates: required WordPress and PHP versions now come from a manifest attached to each release.
+* Updates: packages are only accepted from github.com, requests go through wp_safe_remote_get.
+* Updates: release notes are rendered as formatted text in the details window.
+* Updates: no false "untested" warning on a minor WordPress version.
 
 = 1.0.2 =
 * Fix: every "External database" action of a form now runs, not only the first one.
