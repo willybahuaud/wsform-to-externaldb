@@ -12,7 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Mises à jour depuis les releases GitHub, via l'en-tête Update URI.
  *
- * Seule une release avec un tag vX.Y.Z et l'archive <slug>-X.Y.Z.zip est proposée.
+ * Seule une release avec un tag vX.Y.Z et l'archive <slug>-X.Y.Z.zip, servie par
+ * github.com, est proposée. Le manifeste <slug>-X.Y.Z.json donne les versions requises.
  * Appels anonymes : le dépôt doit être public.
  */
 class WS_Form_DB_Updater {
@@ -176,13 +177,29 @@ class WS_Form_DB_Updater {
 			'homepage'      => $this->get_repository_url(),
 			'requires'      => $release['requires'],
 			'requires_php'  => $release['requires_php'],
-			'tested'        => $release['tested'],
+			'tested'        => $this->get_tested_version( $release['tested'] ),
 			'last_updated'  => $release['published_at'],
 			'download_link' => $release['package'],
 			'sections'      => array(
 				'changelog' => $this->format_notes( $release['notes'] ),
 			),
 		);
+	}
+
+	/**
+	 * Retourne la version testée à présenter à la fenêtre des détails.
+	 *
+	 * « Tested up to: 7.1 » couvre toute la branche, mais cette fenêtre compare les versions
+	 * telles quelles : sans ce relais, elle préviendrait à tort sous WordPress 7.1.4.
+	 *
+	 * @param string $tested Version déclarée par la release.
+	 *
+	 * @return string
+	 */
+	private function get_tested_version( $tested ) {
+		$wordpress_version = get_bloginfo( 'version' );
+
+		return 0 === strpos( $wordpress_version . '.', $tested . '.' ) ? $wordpress_version : $tested;
 	}
 
 	/**
@@ -268,49 +285,36 @@ class WS_Form_DB_Updater {
 			return false;
 		}
 
-		$requirements = $this->fetch_requirements( $data['tag_name'] );
-
-		return array(
-			'version'      => $version,
-			'package'      => $package,
-			'url'          => isset( $data['html_url'] ) ? esc_url_raw( $data['html_url'] ) : $this->get_repository_url(),
-			'notes'        => isset( $data['body'] ) ? (string) $data['body'] : '',
-			'published_at' => isset( $data['published_at'] ) ? (string) $data['published_at'] : '',
-			'requires'     => $requirements['requires'],
-			'requires_php' => $requirements['requires_php'],
-			'tested'       => $requirements['tested'],
+		return array_merge(
+			array(
+				'version'      => $version,
+				'package'      => $package,
+				'url'          => isset( $data['html_url'] ) ? esc_url_raw( $data['html_url'] ) : $this->get_repository_url(),
+				'notes'        => isset( $data['body'] ) ? (string) $data['body'] : '',
+				'published_at' => isset( $data['published_at'] ) ? (string) $data['published_at'] : '',
+			),
+			$this->fetch_requirements( $data, $version )
 		);
 	}
 
 	/**
-	 * Lit les versions requises dans le readme.txt du tag.
+	 * Lit les versions requises dans le manifeste <slug>-X.Y.Z.json joint à la release.
 	 *
-	 * Ce fichier, servi par raw.githubusercontent.com, ne compte pas dans la limite de l'API.
+	 * Les en-têtes du plugin installé décrivent l'ancienne version, pas celle qui arrive.
+	 * Sans manifeste, la release reste proposée, sans versions requises.
 	 *
-	 * @param string $tag Tag de la release.
+	 * @param array  $data    Release GitHub.
+	 * @param string $version Version annoncée par le tag.
 	 *
 	 * @return array{requires:string,requires_php:string,tested:string}
 	 */
-	private function fetch_requirements( $tag ) {
-		$requirements = array(
-			'requires'     => '',
-			'requires_php' => '',
-			'tested'       => '',
-		);
+	private function fetch_requirements( $data, $version ) {
+		$url          = $this->find_asset_url( $data, $this->get_slug() . '-' . $version . '.json' );
+		$manifest     = '' === $url ? null : $this->request_json( $url );
+		$requirements = array();
 
-		// Lecture côté serveur du readme de la release, pas un asset chargé par le navigateur.
-		$readme = $this->request_body( sprintf( 'https://raw.githubusercontent.com/%s/%s/%s/readme.txt', rawurlencode( $this->owner ), rawurlencode( $this->repository ), rawurlencode( $tag ) ) ); // phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent
-
-		$headers = array(
-			'requires'     => 'Requires at least',
-			'requires_php' => 'Requires PHP',
-			'tested'       => 'Tested up to',
-		);
-
-		foreach ( $headers as $key => $label ) {
-			if ( preg_match( '/^' . preg_quote( $label, '/' ) . ':\s*([0-9.]+)\s*$/mi', $readme, $match ) ) {
-				$requirements[ $key ] = $match[1];
-			}
+		foreach ( array( 'requires', 'requires_php', 'tested' ) as $key ) {
+			$requirements[ $key ] = isset( $manifest[ $key ] ) && is_string( $manifest[ $key ] ) ? $manifest[ $key ] : '';
 		}
 
 		return $requirements;
@@ -325,15 +329,36 @@ class WS_Form_DB_Updater {
 	 * @return string URL de téléchargement, ou chaîne vide.
 	 */
 	private function find_package_url( $data, $version ) {
-		$expected_name = $this->get_slug() . '-' . $version . '.zip';
+		return $this->find_asset_url( $data, $this->get_slug() . '-' . $version . '.zip' );
+	}
 
+	/**
+	 * Cherche un fichier joint à la release, par son nom exact, servi par github.com.
+	 *
+	 * @param array  $data Release GitHub.
+	 * @param string $name Nom du fichier.
+	 *
+	 * @return string URL de téléchargement, ou chaîne vide.
+	 */
+	private function find_asset_url( $data, $name ) {
 		foreach ( isset( $data['assets'] ) && is_array( $data['assets'] ) ? $data['assets'] : array() as $asset ) {
-			if ( isset( $asset['name'], $asset['browser_download_url'] ) && $expected_name === $asset['name'] ) {
+			if ( isset( $asset['name'], $asset['browser_download_url'] ) && $name === $asset['name'] && $this->is_github_url( $asset['browser_download_url'] ) ) {
 				return esc_url_raw( $asset['browser_download_url'] );
 			}
 		}
 
 		return '';
+	}
+
+	/**
+	 * Vérifie qu'un fichier se télécharge depuis github.com, en HTTPS.
+	 *
+	 * @param mixed $url URL à vérifier.
+	 *
+	 * @return bool
+	 */
+	private function is_github_url( $url ) {
+		return is_string( $url ) && 'https' === wp_parse_url( $url, PHP_URL_SCHEME ) && 'github.com' === wp_parse_url( $url, PHP_URL_HOST );
 	}
 
 	/**
@@ -348,49 +373,37 @@ class WS_Form_DB_Updater {
 	}
 
 	/**
-	 * Appelle une URL JSON de GitHub.
+	 * Lance une requête GET vers GitHub et décode sa réponse JSON.
 	 *
 	 * @param string $url URL.
 	 *
-	 * @return array|null
+	 * @return array|null Réponse décodée, ou null pour un 404, un 403 de limite ou un délai dépassé.
 	 */
 	private function request_json( $url ) {
-		$data = json_decode( $this->request_body( $url, array( 'Accept' => 'application/vnd.github+json' ) ), true );
+		$response = wp_safe_remote_get(
+			$url,
+			array(
+				'timeout' => self::REQUEST_TIMEOUT,
+				'headers' => array(
+					'Accept'     => 'application/vnd.github+json',
+					'User-Agent' => $this->repository . '/' . $this->version,
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return null;
+		}
+
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 
 		return is_array( $data ) ? $data : null;
 	}
 
 	/**
-	 * Appelle une URL et retourne le corps si la réponse est un 200.
-	 *
-	 * @param string $url     URL.
-	 * @param array  $headers En-têtes supplémentaires.
-	 *
-	 * @return string Corps, ou chaîne vide en cas d'échec.
-	 */
-	private function request_body( $url, $headers = array() ) {
-		$response = wp_remote_get(
-			$url,
-			array(
-				'timeout' => self::REQUEST_TIMEOUT,
-				'headers' => array_merge( array( 'User-Agent' => $this->repository . '/' . $this->version ), $headers ),
-			)
-		);
-
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			return '';
-		}
-
-		return (string) wp_remote_retrieve_body( $response );
-	}
-
-	/**
 	 * Met en forme les notes de release pour la fenêtre de détails.
 	 *
-	 * Le Markdown n'est pas interprété : le texte est échappé, les puces et les
-	 * retours à la ligne sont conservés.
-	 *
-	 * @param string $notes Notes de release.
+	 * @param string $notes Notes de release, en Markdown.
 	 *
 	 * @return string HTML.
 	 */
@@ -399,7 +412,7 @@ class WS_Form_DB_Updater {
 			return '<p>' . esc_html__( 'No release notes.', 'wsform-to-externaldb' ) . '</p>';
 		}
 
-		return '<pre style="white-space: pre-wrap;">' . esc_html( $notes ) . '</pre>';
+		return WS_Form_DB_Release_Notes::to_html( $notes );
 	}
 
 	/**

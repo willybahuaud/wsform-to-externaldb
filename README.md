@@ -142,7 +142,7 @@ wp i18n make-mo languages/wsform-to-externaldb-fr_FR.po languages/
 wp i18n make-php languages/wsform-to-externaldb-fr_FR.po languages/
 ```
 
-`.distignore` lists what stays out of the release archive.
+`.distignore` lists what stays out of the release archive. `bin/build-release.sh X.Y.Z` builds the archive and a `<slug>-X.Y.Z.json` manifest (required WordPress and PHP versions, tested WordPress version). Pushing a `vX.Y.Z` tag publishes both as a GitHub release, which the update check reads. A release without a manifest is still offered, without version requirements.
 
 ## License
 
